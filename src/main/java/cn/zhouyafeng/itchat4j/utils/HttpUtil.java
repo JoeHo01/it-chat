@@ -8,6 +8,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,11 +33,23 @@ public class HttpUtil {
     /** The Constant UTF_8. */
     private static final String UTF_8 = "UTF-8";
 
+    private static HttpClient httpClient = HttpClients.createDefault();
+
 
     public static HttpResponse post(Map<String, String> headers, String customUrl, HttpEntity entity, String customAuthBasic, Integer... allowStatus) {
         HttpResponse response = null;
         try {
             response = sendRequest(RequestBuilder.post(), headers, customUrl, null, entity, customAuthBasic, allowStatus);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public static HttpResponse get(Map<String, String> headers, String customUrl, Map<String, Object> params, String customAuthBasic, Integer... allowStatus) {
+        HttpResponse response = null;
+        try {
+            response = sendRequest(RequestBuilder.get(), headers, customUrl, params, null, customAuthBasic, allowStatus);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,7 +69,7 @@ public class HttpUtil {
      */
     private static HttpResponse sendRequest(RequestBuilder request, Map<String, String> headers, String customUrl, Map<String, Object> params, HttpEntity entity, String customAuthBasic, Integer... allowStatus) throws IOException {
         request = buildRequest(request, headers, customUrl, params, entity, customAuthBasic);
-        HttpResponse response = HttpClients.createDefault().execute(request.build());
+        HttpResponse response = httpClient.execute(request.build());
         if (ArrayUtils.isEmpty(allowStatus)) allowStatus = new Integer[]{200};
         checkResponse(response, customUrl, allowStatus);
         return response;

@@ -23,13 +23,4 @@ public enum ResultEnum {
         return code;
     }
 
-//    public static MsgInfoEnum getCode(String code) {
-//        switch (code) {
-//            case "Text":
-//                return MsgInfoEnum.TEXT;
-//            default:
-//                return MsgInfoEnum.VIDEO;
-//        }
-//    }
-
 }

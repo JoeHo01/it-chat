@@ -1,24 +1,18 @@
 package cn.zhouyafeng.itchat4j.core;
 
-import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
-import cn.zhouyafeng.itchat4j.api.TeambitionTools;
 import cn.zhouyafeng.itchat4j.beans.GroupInfo;
 import cn.zhouyafeng.itchat4j.beans.RecommendInfo;
 import cn.zhouyafeng.itchat4j.dao.base.SQL;
-import com.sun.xml.internal.ws.api.ha.StickyFeature;
+import cn.zhouyafeng.teambition.TeambitionTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import cn.zhouyafeng.itchat4j.api.MessageTools;
-import cn.zhouyafeng.itchat4j.beans.BaseMsg;
-import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
 import cn.zhouyafeng.itchat4j.utils.enums.MsgCodeEnum;
 import cn.zhouyafeng.itchat4j.utils.enums.MsgTypeEnum;
 import cn.zhouyafeng.itchat4j.utils.tools.CommonTools;
@@ -117,12 +111,6 @@ public class MsgCenter {
 			} else {
 				LOG.info("Useless msg");
 			}
-
-
-
-
-			SQL sql = new SQL();
-			String values;
 
 			if (m.getBoolean("groupMsg")){
 

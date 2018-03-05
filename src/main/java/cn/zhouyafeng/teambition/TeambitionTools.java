@@ -1,18 +1,19 @@
-package cn.zhouyafeng.itchat4j.api;
+package cn.zhouyafeng.teambition;
 
-import cn.zhouyafeng.itchat4j.core.Core;
 import cn.zhouyafeng.itchat4j.utils.HttpUtil;
-import cn.zhouyafeng.itchat4j.utils.MyHttpClient;
+import cn.zhouyafeng.teambition.entity.ProjectTagDTO;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.ibatis.logging.stdout.StdOutImpl;
+import org.slf4j.helpers.MessageFormatter;
+import sun.misc.IOUtils;
+
+import java.io.IOException;
 import java.util.*;
 
 public class TeambitionTools {
-
-	private static final String url = "https://www.teambition.com/appstore/api/developer/chats/message";
 
 	private static final String organizationId = "5a30c1688a4d91000158ce4f";
 
@@ -24,8 +25,7 @@ public class TeambitionTools {
 
 	private static final String CONTENT_TYPE = "application/json";
 
-
-
+	private static final String ACCESS_TOKEN = "OAuth2 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfdXNlcklkIjoiNTllNDgxZjExOGZkZGEwMDAxNmYyYjA3IiwiYXVkIjoib2F1dGgyIiwiYXV0aFVwZGF0ZWQiOjE1MDgxNDc2OTc4ODYsImNsaWVudEtleSI6ImU1MjMyYzgwLTBjYmQtMTFlOC1iNTk3LWY5NzljOTgzNjE0MCIsImV4cCI6MTU1MTQxMDIyMSwiaWF0IjoxNTE5ODc0MjIxLCJpc3MiOiJhY2NvdW50cyJ9.aY1TRq3KYCH0Y07W7HFuEamBrqlZn0nwSRWoa231T_4";
 
 	public static void sendMessage(String groupName, String memberName, String message){
 
@@ -42,7 +42,19 @@ public class TeambitionTools {
 		String data = "{\"_organizationId\":\"" + organizationId + "\"," +"\"projects\":[\""+ projects +"\"]," +"\"messageType\":\""+ messageType +"\"," +	"\"text\":\"" + text + "\"}";
 
 		HttpEntity entity = new StringEntity(data, ContentType.create("text/json", "UTF-8"));
-		HttpResponse post = HttpUtil.post(headers, url, entity, null, 200);
-		System.out.println(post);
+
+		HttpResponse post = HttpUtil.post(headers, TeambitionAPI.sendMessage, entity, null);
+	}
+
+	public static List<ProjectTagDTO> getProjects(){
+		String url = MessageFormatter.format(TeambitionAPI.getProjectTags, organizationId).getMessage();
+		HttpResponse httpResponse = HttpUtil.get(null, url, null, ACCESS_TOKEN);
+		try {
+			byte[] bytes = IOUtils.readFully(httpResponse.getEntity().getContent(), 1024, true);
+			System.out.println(new String(bytes));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

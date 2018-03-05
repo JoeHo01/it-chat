@@ -532,7 +532,7 @@ import cn.zhouyafeng.itchat4j.Wechat;
 import cn.zhouyafeng.itchat4j.beans.BaseMsg;
 import cn.zhouyafeng.itchat4j.core.Core;
 import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
-import cn.zhouyafeng.itchat4j.utils.MyHttpClient;
+import cn.zhouyafeng.itchat4j.utils.HttpService;
 import cn.zhouyafeng.itchat4j.utils.enums.MsgTypeEnum;
 import cn.zhouyafeng.itchat4j.utils.tools.DownloadTools;
 
@@ -546,7 +546,7 @@ import cn.zhouyafeng.itchat4j.utils.tools.DownloadTools;
  */
 public class TulingRobot implements IMsgHandlerFace {
 	Logger logger = Logger.getLogger("TulingRobot");
-	MyHttpClient myHttpClient = Core.getInstance().getMyHttpClient();
+	MyHttpClient httpService = Core.getInstance().getMyHttpClient();
 	String url = "http://www.tuling123.com/openapi/api";
 	String apiKey = "597b34bea4ec4c85a775c469c84b6817"; // 这里是我申请的图灵机器人API接口，每天只能5000次调用，建议自己去申请一个，免费的:)
 
@@ -560,7 +560,7 @@ public class TulingRobot implements IMsgHandlerFace {
 		paramMap.put("userid", "123456");
 		String paramStr = JSON.toJSONString(paramMap);
 		try {
-			HttpEntity entity = myHttpClient.doPost(url, paramStr);
+			HttpEntity entity = httpService.doPost(url, paramStr);
 			result = EntityUtils.toString(entity, "UTF-8");
 			JSONObject obj = JSON.parseObject(result);
 			if (obj.getString("code").equals("100000")) {
@@ -652,7 +652,7 @@ import cn.zhouyafeng.itchat4j.api.WechatTools;
 import cn.zhouyafeng.itchat4j.beans.BaseMsg;
 import cn.zhouyafeng.itchat4j.core.Core;
 import cn.zhouyafeng.itchat4j.face.IMsgHandlerFace;
-import cn.zhouyafeng.itchat4j.utils.MyHttpClient;
+import cn.zhouyafeng.itchat4j.utils.HttpService;
 import cn.zhouyafeng.itchat4j.utils.enums.StorageLoginInfoEnum;
 
 /**
@@ -666,7 +666,7 @@ import cn.zhouyafeng.itchat4j.utils.enums.StorageLoginInfoEnum;
 public class PicYourFriends implements IMsgHandlerFace {
 	private static Logger LOG = LoggerFactory.getLogger(PicYourFriends.class);
 	private static final Core core = Core.getInstance();
-	private static final MyHttpClient myHttpClient = core.getMyHttpClient();
+	private static final MyHttpClient httpService = core.getMyHttpClient();
 	private static final String path = "D://itchat4j//head"; // 这里需要设置保存头像的路径
 
 	@Override
@@ -685,7 +685,7 @@ public class PicYourFriends implements IMsgHandlerFace {
 					// String fileName = friend.getString("NickName");
 					String headPicPath = path + File.separator + i + ".jpg";
 
-					HttpEntity entity = myHttpClient.doGet(url, null, true, null);
+					HttpEntity entity = httpService.doGet(url, null, true, null);
 					try {
 						OutputStream out = new FileOutputStream(headPicPath);
 						byte[] bytes = EntityUtils.toByteArray(entity);

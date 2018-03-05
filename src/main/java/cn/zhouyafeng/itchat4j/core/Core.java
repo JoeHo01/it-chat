@@ -5,11 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import cn.zhouyafeng.itchat4j.beans.BaseMsg;
-import cn.zhouyafeng.itchat4j.utils.MyHttpClient;
+import cn.zhouyafeng.itchat4j.utils.HttpService;
 import cn.zhouyafeng.itchat4j.utils.enums.parameters.BaseParaEnum;
 
 /**
@@ -54,7 +53,7 @@ public class Core {
 	private List<JSONObject> contactList = new ArrayList<>();
 
 	private Map<String, Object> loginInfo = new HashMap<String, Object>();
-	private MyHttpClient myHttpClient = MyHttpClient.getInstance();
+	private HttpService httpService = HttpService.getInstance();
 	private String uuid = null;
 
 	private boolean useHotReload = false;
@@ -139,8 +138,8 @@ public class Core {
 		this.receivingRetryCount = receivingRetryCount;
 	}
 
-	public MyHttpClient getMyHttpClient() {
-		return myHttpClient;
+	public HttpService getHttpService() {
+		return httpService;
 	}
 
 	public List<BaseMsg> getMsgList() {
@@ -151,8 +150,8 @@ public class Core {
 		this.msgList = msgList;
 	}
 
-	public void setMyHttpClient(MyHttpClient myHttpClient) {
-		this.myHttpClient = myHttpClient;
+	public void setHttpService(HttpService httpService) {
+		this.httpService = httpService;
 	}
 
 	public String getUserName() {

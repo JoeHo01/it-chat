@@ -32,12 +32,12 @@ import org.apache.http.util.EntityUtils;
  * @version 1.0
  *
  */
-public class MyHttpClient {
-	private Logger logger = Logger.getLogger("MyHttpClient");
+public class HttpService {
+	private Logger logger = Logger.getLogger("HttpService");
 
 	private static CloseableHttpClient httpClient = HttpClients.createDefault();
 
-	private static MyHttpClient instance = null;
+	private static HttpService instance = null;
 
 	private static CookieStore cookieStore;
 
@@ -59,7 +59,7 @@ public class MyHttpClient {
 
 	}
 
-	private MyHttpClient() {
+	private HttpService() {
 
 	}
 
@@ -70,11 +70,11 @@ public class MyHttpClient {
 	 * @date 2017年5月7日 下午8:37:17
 	 * @return
 	 */
-	public static MyHttpClient getInstance() {
+	public static HttpService getInstance() {
 		if (instance == null) {
-			synchronized (MyHttpClient.class) {
+			synchronized (HttpService.class) {
 				if (instance == null) {
-					instance = new MyHttpClient();
+					instance = new HttpService();
 				}
 			}
 		}
@@ -90,8 +90,7 @@ public class MyHttpClient {
 	 * @param params
 	 * @return
 	 */
-	public HttpEntity doGet(String url, List<BasicNameValuePair> params, boolean redirect,
-			Map<String, String> headerMap) {
+	public HttpEntity doGet(String url, List<BasicNameValuePair> params, boolean redirect, Map<String, String> headerMap) {
 		HttpEntity entity = null;
 		HttpGet httpGet = new HttpGet();
 
@@ -150,34 +149,6 @@ public class MyHttpClient {
 		}
 
 		return entity;
-	}
-
-	/**
-	 * 上传文件到服务器
-	 * 
-	 * @author https://github.com/yaphone
-	 * @date 2017年5月7日 下午9:19:23
-	 * @param url
-	 * @param reqEntity
-	 * @return
-	 */
-	public HttpEntity doPostFile(String url, HttpEntity reqEntity) {
-		HttpEntity entity = null;
-		HttpPost httpPost = new HttpPost(url);
-		httpPost.setHeader("User-Agent", Config.USER_AGENT);
-		httpPost.setEntity(reqEntity);
-		try {
-			CloseableHttpResponse response = httpClient.execute(httpPost);
-			entity = response.getEntity();
-
-		} catch (Exception e) {
-			logger.info(e.getMessage());
-		}
-		return entity;
-	}
-
-	public static CloseableHttpClient getHttpClient() {
-		return httpClient;
 	}
 
 }

@@ -15,26 +15,22 @@ import java.util.regex.Matcher;
 
 import cn.zhouyafeng.itchat4j.beans.GroupInfo;
 import cn.zhouyafeng.itchat4j.beans.RecommendInfo;
-import com.alibaba.druid.support.json.JSONUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.w3c.dom.Document;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import cn.zhouyafeng.itchat4j.beans.BaseMsg;
 import cn.zhouyafeng.itchat4j.core.Core;
 import cn.zhouyafeng.itchat4j.core.MsgCenter;
 import cn.zhouyafeng.itchat4j.service.ILoginService;
-import cn.zhouyafeng.itchat4j.utils.Config;
-import cn.zhouyafeng.itchat4j.utils.MyHttpClient;
+import cn.zhouyafeng.itchat4j.utils.HttpService;
 import cn.zhouyafeng.itchat4j.utils.SleepUtils;
 import cn.zhouyafeng.itchat4j.utils.enums.ResultEnum;
 import cn.zhouyafeng.itchat4j.utils.enums.RetCodeEnum;
@@ -63,9 +59,9 @@ public class LoginServiceImpl implements ILoginService {
 
 	private Map<String, RecommendInfo> recommends = RecommendInfo.getInstance();
 
-	private MyHttpClient httpClient = core.getMyHttpClient();
+	private HttpService httpClient = core.getHttpService();
 
-	private MyHttpClient myHttpClient = core.getMyHttpClient();
+	private HttpService httpService = core.getHttpService();
 
 	public LoginServiceImpl() {
 
@@ -141,7 +137,7 @@ public class LoginServiceImpl implements ILoginService {
 	public boolean getQR(String qrPath) {
 		qrPath = qrPath + File.separator + "QR.jpg";
 		String qrUrl = URLEnum.QRCODE_URL.getUrl() + core.getUuid();
-		HttpEntity entity = myHttpClient.doGet(qrUrl, null, true, null);
+		HttpEntity entity = httpService.doGet(qrUrl, null, true, null);
 		try {
 			OutputStream out = new FileOutputStream(qrPath);
 			byte[] bytes = EntityUtils.toByteArray(entity);
@@ -470,7 +466,7 @@ public class LoginServiceImpl implements ILoginService {
 			String text = "";
 
 			try {
-				HttpEntity entity = myHttpClient.doGet(originalUrl, null, false, null);
+				HttpEntity entity = httpService.doGet(originalUrl, null, false, null);
 				text = EntityUtils.toString(entity);
 			} catch (Exception e) {
 				LOG.info(e.getMessage());
@@ -584,7 +580,7 @@ public class LoginServiceImpl implements ILoginService {
 		paramMap.put("rr", -new Date().getTime() / 1000);
 		String paramStr = JSON.toJSONString(paramMap);
 		try {
-			HttpEntity entity = myHttpClient.doPost(url, paramStr);
+			HttpEntity entity = httpService.doPost(url, paramStr);
 			String text = EntityUtils.toString(entity, Consts.UTF_8);
 			JSONObject obj = JSON.parseObject(text);
 			if (obj.getJSONObject("BaseResponse").getInteger("Ret") != 0) {
@@ -630,7 +626,7 @@ public class LoginServiceImpl implements ILoginService {
 		params.add(new BasicNameValuePair("_", String.valueOf(new Date().getTime())));
 		SleepUtils.sleep(7);
 		try {
-			HttpEntity entity = myHttpClient.doGet(url, params, true, null);
+			HttpEntity entity = httpService.doGet(url, params, true, null);
 			if (entity == null) {
 				resultMap.put("retcode", "9999");
 				resultMap.put("selector", "9999");

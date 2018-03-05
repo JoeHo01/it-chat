@@ -32,32 +32,6 @@ public class SQL {
 		return result;
 	}
 
-	public List<Map<String, String>> select(String sql){
-		try {
-			connection = Connection.getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		PreparedStatement preparedStatement = null;
-
-		try {
-			preparedStatement = connection.prepareStatement(sql);
- 			ResultSet resultSet = preparedStatement.executeQuery();
-
- 			while (resultSet.next()){
-			    for (int i = 1; i < 6 ; i++) {
-				    System.out.println(resultSet.getString(i));
-			    }
-		    }
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			close(preparedStatement);
-		}
-		return null;
-	}
-
 	private void close(PreparedStatement preparedStatement){
 		try {
 			if (null != preparedStatement) {
