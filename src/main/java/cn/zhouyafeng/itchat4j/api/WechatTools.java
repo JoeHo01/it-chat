@@ -57,7 +57,7 @@ public class WechatTools {
 	 * 
 	 * @author https://github.com/yaphone
 	 * @date 2017年5月4日 下午10:56:31
-	 * @param name
+	 * @param nickName
 	 * @return
 	 */
 	public static String getUserNameByNickName(String nickName) {
@@ -71,7 +71,7 @@ public class WechatTools {
 
 	/**
 	 * 返回好友昵称列表
-	 * 
+	 *
 	 * @author https://github.com/yaphone
 	 * @date 2017年5月4日 下午11:37:20
 	 * @return
@@ -95,17 +95,6 @@ public class WechatTools {
 	}
 
 	/**
-	 * 返回群列表
-	 * 
-	 * @author https://github.com/yaphone
-	 * @date 2017年5月5日 下午9:55:21
-	 * @return
-	 */
-	public static List<JSONObject> getGroupList() {
-		return core.getGroupList();
-	}
-
-	/**
 	 * 获取群ID列表
 	 * 
 	 * @date 2017年6月21日 下午11:42:56
@@ -113,27 +102,6 @@ public class WechatTools {
 	 */
 	public static List<String> getGroupIdList() {
 		return core.getGroupIdList();
-	}
-
-	/**
-	 * 获取群NickName列表
-	 * 
-	 * @date 2017年6月21日 下午11:43:38
-	 * @return
-	 */
-	public static List<String> getGroupNickNameList() {
-		return core.getGroupNickNameList();
-	}
-
-	/**
-	 * 根据groupIdList返回群成员列表
-	 * 
-	 * @date 2017年6月13日 下午11:12:31
-	 * @param groupId
-	 * @return
-	 */
-	public static JSONArray getMemberListByGroupId(String groupId) {
-		return core.getGroupMemeberMap().get(groupId);
 	}
 
 	/**
@@ -176,7 +144,7 @@ public class WechatTools {
 	 * 根据用户昵称设置备注名称
 	 * 
 	 * @date 2017年5月27日 上午12:21:40
-	 * @param userName
+	 * @param nickName
 	 * @param remName
 	 */
 	public static void remarkNameByNickName(String nickName, String remName) {

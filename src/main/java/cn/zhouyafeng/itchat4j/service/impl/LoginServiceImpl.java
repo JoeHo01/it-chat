@@ -190,36 +190,23 @@ public class LoginServiceImpl implements ILoginService {
 			JSONArray syncArray = syncKey.getJSONArray("List");
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < syncArray.size(); i++) {
-				sb.append(syncArray.getJSONObject(i).getString("Key") + "_"
-						+ syncArray.getJSONObject(i).getString("Val") + "|");
+				sb.append(syncArray.getJSONObject(i).getString("Key")).append("_").append(syncArray.getJSONObject(i).getString("Val")).append("|");
 			}
-			// 1_661706053|2_661706420|3_661706415|1000_1494151022|
 			String synckey = sb.toString();
 
-			// 1_661706053|2_661706420|3_661706415|1000_1494151022
-			core.getLoginInfo().put(StorageLoginInfoEnum.synckey.getKey(), synckey.substring(0, synckey.length() - 1));// 1_656161336|2_656161626|3_656161313|11_656159955|13_656120033|201_1492273724|1000_1492265953|1001_1492250432|1004_1491805192
+			core.getLoginInfo().put(StorageLoginInfoEnum.synckey.getKey(), synckey.substring(0, synckey.length() - 1));
 			core.setUserName(user.getString("UserName"));
 			core.setNickName(user.getString("NickName"));
 			core.setUserSelf(obj.getJSONObject("User"));
 
 			String chatSet = obj.getString("ChatSet");
 			String[] chatSetArray = chatSet.split(",");
-			for (int i = 0; i < chatSetArray.length; i++) {
-				if (chatSetArray[i].indexOf("@@") != -1) {
+			for (String aChatSetArray : chatSetArray) {
+				if (aChatSetArray.contains("@@")) {
 					// 更新GroupIdList
-					core.getGroupIdList().add(chatSetArray[i]); //
+					core.getGroupIdList().add(aChatSetArray); //
 				}
 			}
-			// JSONArray contactListArray = obj.getJSONArray("ContactList");
-			// for (int i = 0; i < contactListArray.size(); i++) {
-			// JSONObject o = contactListArray.getJSONObject(i);
-			// if (o.getString("UserName").indexOf("@@") != -1) {
-			// core.getGroupIdList().add(o.getString("UserName")); //
-			// // 更新GroupIdList
-			// core.getGroupList().add(o); // 更新GroupList
-			// core.getGroupNickNameList().add(o.getString("NickName"));
-			// }
-			// }
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -265,7 +252,6 @@ public class LoginServiceImpl implements ILoginService {
 						String selector = resultMap.get("selector");
 						if (retcode.equals(RetCodeEnum.UNKOWN.getCode())) {
 							LOG.info(RetCodeEnum.UNKOWN.getType());
-							continue;
 						} else if (retcode.equals(RetCodeEnum.LOGIN_OUT.getCode())) { // 退出
 							LOG.info(RetCodeEnum.LOGIN_OUT.getType());
 							break;
@@ -278,47 +264,40 @@ public class LoginServiceImpl implements ILoginService {
 						} else if (retcode.equals(RetCodeEnum.NORMAL.getCode())) {
 							core.setLastNormalRetcodeTime(System.currentTimeMillis()); // 最后收到正常报文时间
 							JSONObject msgObj = webWxSync();
-							if (selector.equals("2")) {
-								if (msgObj != null) {
-									try {
-										JSONArray msgList = new JSONArray();
-										msgList = msgObj.getJSONArray("AddMsgList");
-										msgList = MsgCenter.produceMsg(msgList);
-										for (int j = 0; j < msgList.size(); j++) {
-											BaseMsg baseMsg = JSON.toJavaObject(msgList.getJSONObject(j),
-													BaseMsg.class);
-											core.getMsgList().add(baseMsg);
+							switch (selector) {
+								case "2":
+									if (msgObj != null) {
+										try {
+											MsgCenter.produceMsg(msgObj.getJSONArray("AddMsgList"));
+										} catch (Exception e) {
+											LOG.info(e.getMessage());
 										}
-									} catch (Exception e) {
-										LOG.info(e.getMessage());
 									}
-								}
-							} else if (selector.equals("7")) {
-								webWxSync();
-							} else if (selector.equals("4")) {
-								continue;
-							} else if (selector.equals("3")) {
-								continue;
-							} else if (selector.equals("6")) {
-								if (msgObj != null) {
-									try {
-										JSONArray msgList = new JSONArray();
-										msgList = msgObj.getJSONArray("AddMsgList");
-										JSONArray modContactList = msgObj.getJSONArray("ModContactList"); // 存在删除或者新增的好友信息
-										msgList = MsgCenter.produceMsg(msgList);
-										for (int j = 0; j < msgList.size(); j++) {
-											JSONObject userInfo = modContactList.getJSONObject(j);
-											// 存在主动加好友之后的同步联系人到本地
-											core.getContactList().add(userInfo);
+									break;
+								case "7":
+									webWxSync();
+									break;
+								case "4":
+									continue;
+								case "3":
+									continue;
+								case "6":
+									if (msgObj != null) {
+										try {
+											JSONArray msgList = msgObj.getJSONArray("AddMsgList");
+											JSONArray modContactList = msgObj.getJSONArray("ModContactList"); // 存在删除或者新增的好友信息
+											MsgCenter.produceMsg(msgList);
+											for (int j = 0; j < msgList.size(); j++) {
+												// 存在主动加好友之后的同步联系人到本地
+												RecommendInfo recommendInfo = modContactList.getObject(j, RecommendInfo.class);
+												recommends.put(recommendInfo.getUserName(), recommendInfo);
+											}
+										} catch (Exception e) {
+											LOG.info(e.getMessage());
 										}
-									} catch (Exception e) {
-										LOG.info(e.getMessage());
 									}
-								}
-
+									break;
 							}
-						} else {
-							JSONObject obj = webWxSync();
 						}
 					} catch (Exception e) {
 						LOG.info(e.getMessage());
@@ -382,30 +361,20 @@ public class LoginServiceImpl implements ILoginService {
 				member.addAll(fullFriendsJsonList.getJSONArray(StorageLoginInfoEnum.MemberList.getKey()));
 			}
 			core.setMemberCount(member.size());
-			for (Iterator<?> iterator = member.iterator(); iterator.hasNext();) {
-				JSONObject o = (JSONObject) iterator.next();
-				if ((o.getInteger("VerifyFlag") & 8) != 0) { // 公众号/服务号
-					core.getPublicUsersList().add(o);
-				} else if (Config.API_SPECIAL_USER.contains(o.getString("UserName"))) { // 特殊账号
-					core.getSpecialUsersList().add(o);
-				} else if (o.getString("UserName").indexOf("@@") != -1) { // 群聊
-					if (!core.getGroupIdList().contains(o.getString("UserName"))) {
-						core.getGroupNickNameList().add(o.getString("NickName"));
-						core.getGroupIdList().add(o.getString("UserName"));
-						core.getGroupList().add(o);
-					}
-				} else if (o.getString("UserName").equals(core.getUserSelf().getString("UserName"))) { // 自己
-					core.getContactList().remove(o);
-				} else { // 普通联系人
-					core.getContactList().add(o);
+			for (Object aMember : member) {
+				JSONObject o = (JSONObject) aMember;
+				// o.getInteger("VerifyFlag") & 8) != 0 公众号/服务号
+				// Config.API_SPECIAL_USER.contains(o.getString("UserName")) 特殊账号
+
+				if (o.getString("UserName").contains("@") && !o.getString("UserName").contains("@@")) { //群聊
+					groups.put(o.getString("UserName"), new GroupInfo());
+				}else if (o.getString("UserName").contains("@")) { // 普通联系人
+					recommends.put(o.getString("UserName"), JSON.toJavaObject(o, RecommendInfo.class));
 				}
-				recommends.put(o.getString("UserName"), JSON.toJavaObject(o, RecommendInfo.class));
 			}
-			return;
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);
 		}
-		return;
 	}
 
 	@Override
@@ -429,11 +398,7 @@ public class LoginServiceImpl implements ILoginService {
 			JSONObject obj = JSON.parseObject(text);
 			JSONArray contactList = obj.getJSONArray("ContactList");
 			for (int i = 0; i < contactList.size(); i++) { // 群好友
-				if (contactList.getJSONObject(i).getString("UserName").indexOf("@@") > -1) { // 群
-					core.getGroupNickNameList().add(contactList.getJSONObject(i).getString("NickName")); // 更新群昵称列表
-					core.getGroupList().add(contactList.getJSONObject(i)); // 更新群信息（所有）列表
-					core.getGroupMemeberMap().put(contactList.getJSONObject(i).getString("UserName"),
-							contactList.getJSONObject(i).getJSONArray("MemberList")); // 更新群成员Map
+				if (contactList.getJSONObject(i).getString("UserName").contains("@@")) { // 群
 
 					GroupInfo group = new GroupInfo();
 					JSONArray memberList = contactList.getJSONObject(i).getJSONArray("MemberList");
@@ -457,7 +422,7 @@ public class LoginServiceImpl implements ILoginService {
 	 * @param result
 	 * @return
 	 */
-	public String checklogin(String result) {
+	private String checklogin(String result) {
 		String regEx = "window.code=(\\d+)";
 		Matcher matcher = CommonTools.getMatcher(regEx, result);
 		if (matcher.find()) {
@@ -630,8 +595,7 @@ public class LoginServiceImpl implements ILoginService {
 				JSONArray syncArray = obj.getJSONObject(StorageLoginInfoEnum.SyncKey.getKey()).getJSONArray("List");
 				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < syncArray.size(); i++) {
-					sb.append(syncArray.getJSONObject(i).getString("Key") + "_"
-							+ syncArray.getJSONObject(i).getString("Val") + "|");
+					sb.append(syncArray.getJSONObject(i).getString("Key")).append("_").append(syncArray.getJSONObject(i).getString("Val")).append("|");
 				}
 				String synckey = sb.toString();
 				core.getLoginInfo().put(StorageLoginInfoEnum.synckey.getKey(),
@@ -692,10 +656,10 @@ public class LoginServiceImpl implements ILoginService {
 	 * @param result
 	 * @return
 	 */
-	public String getLoginMessage(String result){
+	private String getLoginMessage(String result){
 		String[] strArr = result.split("<message>");
 		String[] rs = strArr[1].split("</message>");
-		if (rs!=null && rs.length>1) {
+		if (rs.length > 1) {
 			return rs[0];
 		}
 		return "";

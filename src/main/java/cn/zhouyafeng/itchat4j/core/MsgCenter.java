@@ -5,9 +5,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
+import cn.zhouyafeng.itchat4j.api.TeambitionTools;
 import cn.zhouyafeng.itchat4j.beans.GroupInfo;
 import cn.zhouyafeng.itchat4j.beans.RecommendInfo;
 import cn.zhouyafeng.itchat4j.dao.base.SQL;
+import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +48,7 @@ public class MsgCenter {
 	 * @param msgList
 	 * @return
 	 */
-	public static JSONArray produceMsg(JSONArray msgList) {
-
-		JSONArray result = new JSONArray();
+	public static void produceMsg(JSONArray msgList) {
 		for (int i = 0; i < msgList.size(); i++) {
 			JSONObject msg = new JSONObject();
 			JSONObject m = msgList.getJSONObject(i);
@@ -117,80 +117,42 @@ public class MsgCenter {
 			} else {
 				LOG.info("Useless msg");
 			}
-//			LOG.info("收到消息一条，来自: " + m.getString("FromUserName"));
-			result.add(m);
+
+
+
+
 			SQL sql = new SQL();
 			String values;
 
 			if (m.getBoolean("groupMsg")){
-				LOG.info("收到消息一条，来自: " + groups.get(m.getString("FromUserName")).getNickName());
-				LOG.info(groups.get(m.getString("FromUserName")).getMembers().get(m.getString("FromMemberName")).getNickName());
 
-				values = "'" + groups.get(m.getString("FromUserName")).getNickName() + "','" + groups.get(m.getString("FromUserName")).getMembers().get(m.getString("FromMemberName")).getNickName() + "','" + m.getString("CreateTime") + "','" + m.getString("Content") + "'";
+				String groupName = groups.get(m.getString("FromUserName")).getNickName();
+				String memberName = groups.get(m.getString("FromUserName")).getMembers().get(m.getString("FromMemberName")).getNickName();
 
+				LOG.info("收到消息一条，来自: " + groupName);
+				LOG.info(memberName);
+
+				//Test
+				if ("D1M".equals(groupName) || "【IT内部】2018技术部".equals(groupName)){
+					TeambitionTools.sendMessage(groupName, groups.get(m.getString("FromUserName")).getMembers().get(m.getString("FromMemberName")).getNickName(),m.getString("Content"));
+				}
+				saveMsg(groupName, memberName, m.getString("CreateTime"), m.getString("Content"));
 			}else {
-				values = "null,'" + recommends.get(m.getString("FromUserName")).getNickName() + "','" + m.getString("CreateTime") + "','" + m.getString("Content") + "'";
+				saveMsg(null, recommends.get(m.getString("FromUserName")).getNickName(), m.getString("CreateTime"), m.getString("Content"));
 				LOG.info("收到消息一条，来自: " + recommends.get(m.getString("FromUserName")).getNickName());
 			}
 			LOG.info(m.getString("Content"));
-			if (values != null) sql.update("insert into msg (group_id,sender,created_time,content) values (" + values + ")");
-		}
-		return result;
-	}
-
-	/**
-	 * 消息处理
-	 * 
-	 * @author https://github.com/yaphone
-	 * @date 2017年5月14日 上午10:52:34
-	 * @param msgHandler
-	 */
-	public static void handleMsg(IMsgHandlerFace msgHandler) {
-		while (true) {
-			if (core.getMsgList().size() > 0 && core.getMsgList().get(0).getContent() != null) {
-				if (core.getMsgList().get(0).getContent().length() > 0) {
-					BaseMsg msg = core.getMsgList().get(0);
-					if (msg.getType() != null) {
-						try {
-							if (msg.getType().equals(MsgTypeEnum.TEXT.getType())) {
-								String result = msgHandler.textMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.PIC.getType())) {
-
-								String result = msgHandler.picMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.VOICE.getType())) {
-								String result = msgHandler.voiceMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.VIEDO.getType())) {
-								String result = msgHandler.viedoMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.NAMECARD.getType())) {
-								String result = msgHandler.nameCardMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.SYS.getType())) { // 系统消息
-								msgHandler.sysMsgHandle(msg);
-							} else if (msg.getType().equals(MsgTypeEnum.VERIFYMSG.getType())) { // 确认添加好友消息
-								String result = msgHandler.verifyAddFriendMsgHandle(msg);
-								MessageTools.sendMsgById(result,
-										core.getMsgList().get(0).getRecommendInfo().getUserName());
-							} else if (msg.getType().equals(MsgTypeEnum.MEDIA.getType())) { // 多媒体消息
-								String result = msgHandler.mediaMsgHandle(msg);
-								MessageTools.sendMsgById(result, core.getMsgList().get(0).getFromUserName());
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				core.getMsgList().remove(0);
-			}
-			try {
-				TimeUnit.MILLISECONDS.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 
+	private static void saveMsg(String groupName, String userName,String createTime, String massage){
+		SQL sql = new SQL();
+		String values;
+		if (groupName != null){
+			values = "'" + groupName + "','" + userName + "','" + createTime + "','" + massage + "'";
+		} else {
+			values = "null,'" + userName + "','" + createTime + "','" + massage + "'";
+		}
+		sql.update("insert into msg (group_id,sender,created_time,content) values (" + values + ")");
+	}
 }

@@ -27,16 +27,7 @@ public class SQL {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				if (null != preparedStatement) {
-					preparedStatement.close();
-				}
-				if (null != connection) {
-					connection.close();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			close(preparedStatement);
 		}
 		return result;
 	}
@@ -62,17 +53,21 @@ public class SQL {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				if (null != preparedStatement) {
-					preparedStatement.close();
-				}
-				if (null != connection) {
-					connection.close();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			close(preparedStatement);
 		}
 		return null;
+	}
+
+	private void close(PreparedStatement preparedStatement){
+		try {
+			if (null != preparedStatement) {
+				preparedStatement.close();
+			}
+			if (null != connection) {
+				connection.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
